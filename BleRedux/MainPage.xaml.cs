@@ -16,7 +16,7 @@ namespace BleRedux
     public partial class MainPage : ContentPage
     {
         IBleServer _server;
-        IDisposable notifyBroadcast = null;
+        IDisposable _notifyBroadcast = null;
         Plugin.BluetoothLE.Server.IGattService _service;
 
         public MainPage()
@@ -68,9 +68,9 @@ namespace BleRedux
                 {
                     var @event = e.IsSubscribed ? "Subscribed" : "Unsubcribed";
 
-                    if (notifyBroadcast == null)
+                    if (_notifyBroadcast == null)
                     {
-                        this.notifyBroadcast = Observable
+                        this._notifyBroadcast = Observable
                             .Interval(TimeSpan.FromSeconds(1))
                             .Where(x => notifyCharacteristic.SubscribedDevices.Count > 0)
                             .Subscribe(_ =>
@@ -97,9 +97,8 @@ namespace BleRedux
                 Console.WriteLine($"SUBSCRIBING TO WRITE");
                 characteristic.WhenWriteReceived().Subscribe(x =>
                 {
-                    Console.WriteLine($"WRITE RECEIVED");
                     var write = Encoding.UTF8.GetString(x.Value, 0, x.Value.Length);
-                    // do something value
+
                     Console.WriteLine($"WRITE RECEIVED: {write}");
                 });
 
