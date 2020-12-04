@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Xamarin.Forms;
 
 using BleRedux.Shared;
+
 using Plugin.BluetoothLE;
 using Plugin.BluetoothLE.Server;
-using System.Reactive.Linq;
+
+using Xamarin.Forms;
 
 namespace BleRedux
 {
@@ -29,23 +29,22 @@ namespace BleRedux
             if (_server == null)
             {
                 Console.WriteLine("CREATING SERVER");
+
                 _server = DependencyService.Get<IBleServer>();
                 _server.Initialise();
 
                 _server.StatusChanged += Peripheral_StatusChanged;
+
+                //Immediately start creation of service if the adaptor is powered on
+                if (_server.GetStatus() == AdapterStatus.PoweredOn) CreateBleService();
             }
         }
 
-        private void Peripheral_StatusChanged(object sender, AdapterStatus status)
+        private void CreateBleService()
         {
             try
             {
-                Console.WriteLine($"GOT STATUS CHANGED: {status}");
-
-                if (status != AdapterStatus.PoweredOn) return;
-                if (_service != null) return;
-
-                Console.WriteLine($"CREATING SERVICE");
+                Console.WriteLine($"CREATING BLE SERVICE");
                 _service = _server.CreateService(new Guid(BluetoothConstants.kFidoServiceUUID), true);
 
                 Console.WriteLine($"ADDING CHARACTERISTICS");
@@ -120,6 +119,16 @@ namespace BleRedux
             {
                 Console.WriteLine($"EXCEPTION: {ex}");
             }
+        }
+
+        private void Peripheral_StatusChanged(object sender, AdapterStatus status)
+        {
+            Console.WriteLine($"GOT STATUS CHANGED: {status}");
+
+            if (status != AdapterStatus.PoweredOn) return;
+            if (_service != null) return;
+
+            CreateBleService();
         }
     }
 }

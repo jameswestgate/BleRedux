@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Plugin.BluetoothLE.Server;
 
 namespace BleRedux.Shared
@@ -7,6 +8,7 @@ namespace BleRedux.Shared
     {
         void Initialise();
 
+        Plugin.BluetoothLE.AdapterStatus GetStatus();
         event EventHandler<Plugin.BluetoothLE.AdapterStatus> StatusChanged;
 
         IGattService CreateService(Guid uuid, bool primary);

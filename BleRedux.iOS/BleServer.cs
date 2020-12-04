@@ -1,13 +1,10 @@
 ﻿using System;
+using System.Threading.Tasks;
 using BleRedux.Shared;
-using Xamarin.Forms;
-
-using Foundation;
-
-using Plugin.BluetoothLE.Server;
 using CoreBluetooth;
-using System.Reactive.Linq;
-using System.Text;
+using Foundation;
+using Plugin.BluetoothLE.Server;
+using Xamarin.Forms;
 
 [assembly: Dependency(typeof(BleRedux.iOS.BleServer))]
 namespace BleRedux.iOS
@@ -18,12 +15,14 @@ namespace BleRedux.iOS
         private CBPeripheralManager _manager;
         private GattServer _server;
         private Advertiser _advertiser;
+        private Plugin.BluetoothLE.AdapterStatus _status;
 
         public event EventHandler<Plugin.BluetoothLE.AdapterStatus> StatusChanged;
 
         public void Initialise()
         {
             _manager = new CBPeripheralManager();
+            _status = Plugin.BluetoothLE.AdapterStatus.Unknown;
 
             _manager.StateUpdated += (object sender, EventArgs e) =>
             {
@@ -31,8 +30,15 @@ namespace BleRedux.iOS
 
                 Enum.TryParse(_manager.State.ToString(), true, out result);
 
+                _status = result;
+
                 StatusChanged?.Invoke(this, result);
             };
+        }
+
+        public Plugin.BluetoothLE.AdapterStatus GetStatus()
+        {
+            return _status;
         }
 
         public IGattService CreateService(Guid uuid, bool primary)
@@ -49,7 +55,6 @@ namespace BleRedux.iOS
 
         public void StartAdvertiser(Plugin.BluetoothLE.Server.AdvertisementData advertisingData)
         {
-            //advertisingData.ManufacturerData = new ManufacturerData();
             if (_advertiser != null) StopAdvertiser();
 
             _advertiser = new Advertiser(_manager);
@@ -61,6 +66,11 @@ namespace BleRedux.iOS
         {
             if (_advertiser == null) return;
             _advertiser.Stop();
+        }
+
+        public bool RequestPermissions()
+        {
+            throw new NotImplementedException();
         }
     }
 }
